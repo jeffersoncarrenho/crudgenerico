@@ -12,7 +12,7 @@ abstract class Banco{
     
     //métodos
     public function __construct(){
-        $this->conecta();        
+        $this->conecta(); 
     }//construct
     
     public function __destruct(){
