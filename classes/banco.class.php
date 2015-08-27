@@ -31,7 +31,6 @@ abstract class Banco{
     }//conecta
     
     public function inserir ($objeto){
-        //insert into nome_da_tabela (campo1, campo2) Values (valor1, valor2)
         $sql = "INSERT INTO " . $objeto->tabela. " (";
         for($i=0; $i<count($objeto->campos_valores); $i++):
             $sql .= key($objeto->campos_valores);
@@ -53,11 +52,32 @@ abstract class Banco{
             endif;
             next($objeto->campos_valores);
         endfor;
-        echo $sql;
         return $this->executaSQL($sql);
-        $this->linhasafetadas = mysql_affected_rows($this->conexao);
-        
     }//fim inserir
+    
+    public function atualizar($objeto){
+        $sql = "UPDATE " . $objeto->tabela. " SET ";
+        for($i=0; $i<count($objeto->campos_valores); $i++):
+            $sql .= key($objeto->campos_valores)."=";
+            $sql .= is_numeric($objeto->campos_valores[key($objeto->campos_valores)]) ? $objeto->campos_valores[key($objeto->campos_valores)] : "'".$objeto->campos_valores[key($objeto->campos_valores)]."'";
+            if ($i < (count($objeto->campos_valores)-1)):
+                $sql.=", ";
+            else:    
+                $sql.=" ";
+            endif;
+            next($objeto->campos_valores);
+        endfor;
+        $sql .= "WHERE ".$objeto->campo_pk."=";
+        $sql .= is_numeric($objeto->valor_pk)? $objeto->valor_pk : "'".$objeto->valor_pk."'";
+        return $this->executaSQL($sql);
+    }//atualizar
+    
+    public function deletar($objeto){
+        $sql = "DELETE FROM " . $objeto->tabela;
+        $sql .= " WHERE ".$objeto->campo_pk."=";
+        $sql .= is_numeric($objeto->valor_pk)? $objeto->valor_pk : "'".$objeto->valor_pk."'";
+        return $this->executaSQL($sql);
+    }//deletar
     
     public function executaSQL($sql = NULL){
         if($sql != null):
