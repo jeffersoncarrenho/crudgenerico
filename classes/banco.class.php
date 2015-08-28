@@ -72,6 +72,34 @@ abstract class Banco{
         return $this->executaSQL($sql);
     }//atualizar
     
+    public function selecionaTudo($objeto){
+        $sql = "SELECT * FROM ". $objeto->tabela;
+        if($objeto->extras_select!=NULL):
+            $sql .= " ".$objeto->extras_select;
+        endif;
+        return $this->executaSQL($sql);
+    }//selecionaTudo
+    
+    
+     public function selecionaCampos($objeto){
+		$sql = "SELECT ";
+		for($i=0; $i<count($objeto->campos_valores); $i++):
+			$sql .= key($objeto->campos_valores);
+			if($i < (count($objeto->campos_valores)-1)):
+				$sql .= ", ";
+			else:
+				$sql .= " ";
+			endif;
+			next($objeto->campos_valores);
+		endfor;
+		
+		$sql .= " FROM ".$objeto->tabela;
+		if($objeto->extras_select!=NULL):
+			$sql .= " ".$objeto->extras_select;
+		endif;
+		return $this->executaSQL($sql);
+	}//selecionaTudo
+    
     public function deletar($objeto){
         $sql = "DELETE FROM " . $objeto->tabela;
         $sql .= " WHERE ".$objeto->campo_pk."=";
@@ -82,10 +110,34 @@ abstract class Banco{
     public function executaSQL($sql = NULL){
         if($sql != null):
             $query = mysql_query($sql) or $this->trataerro(__FILE__, __FUNCTION__);
+            $this->linhasafetadas = mysql_affected_rows($this->conexao);
+            if(substr(trim(strtolower($sql)), 0,6) == 'select'):
+                $this->dataset=$query;
+                return $query;
+            else:
+                return $this-linhasafetadas;
+            endif;
         else:
             $this->trataerro(__FILE__, __FUNCTION__, NULL, ' Comando SQL nao informado na rotina', FALSE);
         endif;
     }//fim executaSQL
+    
+    public function retornaDados($tipo=null){
+        switch (strtolower($tipo)):
+			case "array":
+				return mysql_fetch_array($this->dataset);
+				break;
+			case "assoc":
+				return mysql_fetch_assoc($this->dataset);
+				break;
+			case "object":
+				return mysql_fetch_object($this->dataset);
+				break;
+			default:
+				return mysql_fetch_object($this->dataset);
+				break;
+		endswitch;
+    }//retornaDados
     
     public function trataerro($arquivo=NULL, $rotina=NULL, $numerro=NULL, $msgerro=NULL, $geraexcept=FALSE){
         if($arquivo == NULL) $arquivo = "Nao informado";
